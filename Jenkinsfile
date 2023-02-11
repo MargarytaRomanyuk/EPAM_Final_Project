@@ -88,7 +88,7 @@ pipeline {
                     withCredentials([usernamePassword(credentialsId: 'git-token', passwordVariable: 'PASSWD', usernameVariable: 'USER')])
                     {
                         sh 'git config --list'
-                        sh "git remote set-url origin https://${PASSWD}@github.com/MargarytaRomanyuk/Java-maven-app.git"
+                        sh "git remote set-url origin https://${PASSWD}@github.com/MargarytaRomanyuk/EPAM_Final_Project.git"
                         sh 'git add .'
                         sh 'git commit -m "CI: version bump" '
                         sh 'git push origin HEAD:dev'
