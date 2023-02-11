@@ -12,9 +12,11 @@ pipeline {
             }
         }
         stage("incremental version") {
-            //agent {
-                 //docker { image 'maven:latest' }
-            // }
+            when {
+                expression {
+                    BRANCH_NAME == 'dev'
+                }
+            }   
             steps {
                 script { 
                     echo 'Parsing and incrementing app version...'
@@ -38,7 +40,7 @@ pipeline {
                 }
             }
         }
-        stage("build jar") {
+        stage("build war") {
             when {
                 expression {
                     BRANCH_NAME == 'dev'
@@ -82,12 +84,15 @@ pipeline {
             }
         }     
         stage('commit update version') {
-            //agent any
+            when {
+                expression {
+                    BRANCH_NAME == 'dev'
+                }
+            }   
             steps {
                 script {                    
                     withCredentials([usernamePassword(credentialsId: 'git-token', passwordVariable: 'PASSWD', usernameVariable: 'USER')])
                     {
-                        sh 'git config --list'
                         sh "git remote set-url origin https://${PASSWD}@github.com/MargarytaRomanyuk/EPAM_Final_Project.git"
                         sh 'git add .'
                         sh 'git commit -m "CI: version bump" '
