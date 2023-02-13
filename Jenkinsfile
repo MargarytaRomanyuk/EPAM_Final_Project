@@ -120,7 +120,7 @@ pipeline {
                 expression {
                     BRANCH_NAME == 'dev'
                 }
-            }   
+            }  
             steps {
                 script {                    
                     withCredentials([usernamePassword(credentialsId: 'git-token', passwordVariable: 'PASSWD', usernameVariable: 'USER')])
@@ -134,4 +134,3 @@ pipeline {
             }
         }
     }
-}
