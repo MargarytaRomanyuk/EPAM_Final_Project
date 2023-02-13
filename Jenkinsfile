@@ -62,7 +62,6 @@ pipeline {
                     BRANCH_NAME == 'dev'
                 }
             }                
-            //agent any
             steps {
                 script {
                     echo "building image"
@@ -88,12 +87,7 @@ pipeline {
                     }
                 }
             }
-        stage("deploy") {  
-            when {
-                expression {
-                    BRANCH_NAME == 'main'
-                }
-            }
+        stage("deploy") {
             environment {
                 DOCKER_CREDS = credentials('dockerhub-credenntials')
             }
@@ -114,13 +108,12 @@ pipeline {
                    }
                 }
             }
-
-            steps {
-                script {
-                    echo "deploying"
-                    gv.deployApp()
-                }
-            }
+            //steps {
+                //script {
+                   // echo "deploying"
+                  //  gv.deployApp()
+              //  }
+           // }
         }     
         stage('commit update version') {
             when {
