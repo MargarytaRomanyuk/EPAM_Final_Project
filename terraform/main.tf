@@ -2,8 +2,8 @@ provider "aws" {
    region = var.region
 }
 
-resource "aws_default_security_group" "default-sg" {
-  //name = var.env_prefix-default-sg
+resource "aws_security_group" "webservwr-sg" {
+    name = "webservwr-sg"
 
     ingress {
         from_port = 22
@@ -39,14 +39,13 @@ data "aws_ami" "latest_amazon_linux" {
 }
 // amzn2-ami-kernel-5.10-hvm-2.0.20230119.1-x86_64-gp2
 resource "aws_instance" "app-server" {
-  ami           = "aws_ami.latest_amazon_linux.id"
+  ami           = data.aws_ami.latest_amazon_linux.id
   instance_type = var.instance_type
 
-  vpc_security_group_ids = [aws_default_security_group.default-sg.id]
+  vpc_security_group_ids = [aws_security_group.webservwr-sg.id]
   associate_public_ip_address = true
   key_name = "amazon-linux"
   user_data = file("entry-script.sh")
-
 
   tags = {
     Name    = "${var.env_prefix}-WebServer"
