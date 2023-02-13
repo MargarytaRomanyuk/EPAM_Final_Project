@@ -1,8 +1,8 @@
 <html>
   <head>
-    <title>TEST</title>
+    <title>TEST_app</title>
   </head>
-<body bgcolor=green>
+<body bgcolor=pink>
 <h2>Hello, from my app page!</h2>
 </body>
 </html>
