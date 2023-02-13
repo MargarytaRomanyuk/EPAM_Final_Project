@@ -2,5 +2,9 @@
 target/
 .idea
 *.tfstate
-*.tfstate.backup
+*.tfstate.*
 *.tfvars
+**/.terraform/*
+.terraform
+#terraform-provider-aws_v4.54.0_x5
+.terraform.lock.hcl
