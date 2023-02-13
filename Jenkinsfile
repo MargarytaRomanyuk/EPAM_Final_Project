@@ -69,6 +69,7 @@ pipeline {
                 }
             }
         }
+        
         stage("provision server") {
             environment {
                 AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
@@ -87,6 +88,7 @@ pipeline {
                     }
                 }
             }
+        }
         stage("deploy") {
             environment {
                 DOCKER_CREDS = credentials('dockerhub-credenntials')
@@ -134,5 +136,4 @@ pipeline {
             }
         }
     }
-}
 }
