@@ -4,13 +4,6 @@ pipeline {
         maven 'maven-3.8'
     }
     stages {
-        stage("init") {
-            steps {
-                script {
-                    gv = load "script.groovy"
-                }
-            }
-        }
         stage("incremental version") {
             when {
                 expression {
@@ -35,8 +28,8 @@ pipeline {
             // }
             steps {
                 script {
-                    echo "testing app"
-                    gv.testPrejar()
+                    echo "Testing the application..."
+                    sh 'mvn test'
                 }
             }
         }
@@ -51,8 +44,8 @@ pipeline {
            // }
             steps {
                 script {
-                    echo "building jar"
-                    gv.buildJar()
+                    echo "Building the application..."
+                    sh 'mvn clean package -DskipTests'
                 }
             }
         }
@@ -64,11 +57,14 @@ pipeline {
             }                
             steps {
                 script {
-                    echo "building image"
-                    gv.buildImage()
+                    echo "Building the docker image..."
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credenntials', passwordVariable: 'PASSWD', usernameVariable: 'USER')]) {
+                        sh 'docker build -t magharyta/my-repo:${IMAGE_NAME} .'
+                        sh "echo $PASSWD | docker login -u $USER --password-stdin"
+                        sh 'docker push magharyta/my-repo:${IMAGE_NAME}'
+                    }
                 }
             }
-        }
         
         stage("provision server") {
             environment {
@@ -110,12 +106,6 @@ pipeline {
                    }
                 }
             }
-            //steps {
-                //script {
-                   // echo "deploying"
-                  //  gv.deployApp()
-              //  }
-           // }
         }     
         stage('commit update version') {
             when {
