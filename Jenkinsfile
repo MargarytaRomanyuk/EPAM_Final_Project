@@ -131,7 +131,7 @@ pipeline {
         }
         stage("destroy env") {
             when {
-                expression { $USER_INPUT == 'yes' } // destroy approved      
+                expression { env.USER_INPUT == 'yes' } // destroy approved      
                 }
             environment {
                 AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
