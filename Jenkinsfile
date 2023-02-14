@@ -3,6 +3,9 @@ pipeline {
     tools {
         maven 'maven-3.8'
     }
+    //parameters{
+      //  booleanParam(name: 'destroyEnv', defaultValue: false, description: 'Destroy test environment by terraform')
+    //}
     stages {
         stage("incremental version") {
             when {
@@ -66,7 +69,7 @@ pipeline {
                 }
             }
         }
-        stage("provision server") {
+        stage("provision web-server for deploy") {
             environment {
                 AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
                 AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_access_secret_key_id')
@@ -106,7 +109,44 @@ pipeline {
                    }
                 }
             }
-        }     
+        } 
+        stage("approve/disallow to destroy env") {
+            //when {
+              //  expression {
+                //    params.destroyEnv == true
+                //}
+           // }
+            steps {
+                script {
+                    def destroyOptions = 'no\nyes'
+                    def userInput = input(
+                        id: 'userInput', message: 'Are you prepared to destroy environment?', parameters: [ 
+                        [$class: 'ChoiceParameterDefinition', choices: destroyOptions, description: 'Approve/Disallow env destroy', name: 'destroy-check']
+                        ]
+                    )
+                    env.USER_INPUT = "$userInput"
+                    echo "you selected: ${userInput}"
+                }
+            }
+        }
+        stage("destroy env") {
+            when {
+                expression { $USER_INPUT == 'yes' } // destroy approved      
+                }
+            environment {
+                AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
+                AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_access_secret_key_id')
+                TF_VAR_env_prefix = "${BRANCH_NAME}"
+            }
+            steps {
+                script {
+                    dir('terraform') {
+                        sh "terraform init"
+                        sh "terraform destroy --auto-approve"
+                    }
+                }
+            }
+        }
         stage('commit update version') {
             when {
                 expression {
