@@ -105,7 +105,7 @@ pipeline {
                    def ec2Instance = "ec2-user@${EC2_PUBLIC_IP}"
  
                    sshagent(['server-ec2-user']) {
-                       sh "scp -o StrictHostKeyChecking=no serv-cmd.sh ${ec2Instance}:/home/ec2-user"
+                       sh "scp -o StrictHostKeyChecking=no serv_cmd.sh ${ec2Instance}:/home/ec2-user"
                        sh "ssh -o StrictHostKeyChecking=no ${ec2Instance} ${shellCmd}"
                    }
                 }
