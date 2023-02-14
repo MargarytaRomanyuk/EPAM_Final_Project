@@ -3,14 +3,10 @@ pipeline {
     tools {
         maven 'maven-3.8'
     }
+    //parameters{
+      //  booleanParam(name: 'destroyEnv', defaultValue: false, description: 'Destroy test environment by terraform')
+    //}
     stages {
-        stage("init") {
-            steps {
-                script {
-                    gv = load "script.groovy"
-                }
-            }
-        }
         stage("incremental version") {
             when {
                 expression {
@@ -35,8 +31,8 @@ pipeline {
             // }
             steps {
                 script {
-                    echo "testing app"
-                    gv.testPrejar()
+                    echo "Testing the application..."
+                    sh 'mvn test'
                 }
             }
         }
@@ -51,8 +47,8 @@ pipeline {
            // }
             steps {
                 script {
-                    echo "building jar"
-                    gv.buildJar()
+                    echo "Building the application..."
+                    sh 'mvn clean package -DskipTests'
                 }
             }
         }
@@ -62,33 +58,102 @@ pipeline {
                     BRANCH_NAME == 'dev'
                 }
             }                
-            //agent any
             steps {
                 script {
-                    echo "building image"
-                    gv.buildImage()
+                    echo "Building the docker image..."
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credenntials', passwordVariable: 'PASSWD', usernameVariable: 'USER')]) {
+                        sh 'docker build -t magharyta/my-repo:${IMAGE_NAME} .'
+                        sh "echo $PASSWD | docker login -u $USER --password-stdin"
+                        sh 'docker push magharyta/my-repo:${IMAGE_NAME}'
+                        sh 'docker rmi magharyta/my-repo:${IMAGE_NAME}'
+                    }
                 }
             }
         }
-        stage("deploy") {  
-            when {
-                expression {
-                    BRANCH_NAME == 'main'
-                }
+        stage("provision web-server for deploy") {
+            environment {
+                AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
+                AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_access_secret_key_id')
+                TF_VAR_env_prefix = "${BRANCH_NAME}"
             }
             steps {
                 script {
-                    echo "deploying"
-                    gv.deployApp()
+                    dir('terraform') {
+                        sh "terraform init"
+                        sh "terraform apply --auto-approve"
+                        EC2_PUBLIC_IP = sh(
+                            script: "terraform output ec2_public_ip",
+                            returnStdout: true
+                        ).trim()
+                    }
                 }
             }
-        }     
+        }
+        stage("deploy") {
+            environment {
+                DOCKER_CREDS = credentials('dockerhub-credenntials')
+            }
+            steps {
+                script {
+                   echo "waiting for EC2 server to initialize" 
+                   sleep(time: 100, unit: "SECONDS") 
+
+                   echo 'deploying docker image to EC2...'
+                   echo "${EC2_PUBLIC_IP}"
+
+                   def shellCmd = "bash ./serv_cmd.sh ${IMAGE_NAME} ${DOCKER_CREDS_USR} ${DOCKER_CREDS_PSW}"
+                   def ec2Instance = "ec2-user@${EC2_PUBLIC_IP}"
+ 
+                   sshagent(['server-ec2-user']) {
+                       sh "scp -o StrictHostKeyChecking=no serv_cmd.sh ${ec2Instance}:/home/ec2-user"
+                       sh "ssh -o StrictHostKeyChecking=no ${ec2Instance} ${shellCmd}"
+                   }
+                }
+            }
+        } 
+        stage("approve/disallow to destroy env") {
+            //when {
+              //  expression {
+                //    params.destroyEnv == true
+                //}
+           // }
+            steps {
+                script {
+                    def destroyOptions = 'no\nyes'
+                    def userInput = input(
+                        id: 'userInput', message: 'Are you prepared to destroy environment?', parameters: [ 
+                        [$class: 'ChoiceParameterDefinition', choices: destroyOptions, description: 'Approve/Disallow env destroy', name: 'destroy-check']
+                        ]
+                    )
+                    env.USER_INPUT = "$userInput"
+                    echo "you selected: ${userInput}"
+                }
+            }
+        }
+        stage("destroy env") {
+            when {
+                expression { env.USER_INPUT == 'yes' } // destroy approved      
+                }
+            environment {
+                AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
+                AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_access_secret_key_id')
+                TF_VAR_env_prefix = "${BRANCH_NAME}"
+            }
+            steps {
+                script {
+                    dir('terraform') {
+                        sh "terraform init"
+                        sh "terraform destroy --auto-approve"
+                    }
+                }
+            }
+        }
         stage('commit update version') {
             when {
                 expression {
                     BRANCH_NAME == 'dev'
                 }
-            }   
+            }  
             steps {
                 script {                    
                     withCredentials([usernamePassword(credentialsId: 'git-token', passwordVariable: 'PASSWD', usernameVariable: 'USER')])
@@ -97,6 +162,7 @@ pipeline {
                         sh 'git add .'
                         sh 'git commit -m "CI: version bump" '
                         sh 'git push origin HEAD:dev'
+                        sh 'git config --list'
                     }                    
                 }
             }

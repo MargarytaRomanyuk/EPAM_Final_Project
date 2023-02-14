@@ -1,3 +1,10 @@
 .DS_Store
 target/
 .idea
+*.tfstate
+*.tfstate.*
+*.tfvars
+**/.terraform/*
+.terraform
+#terraform-provider-aws_v4.54.0_x5
+.terraform.lock.hcl
