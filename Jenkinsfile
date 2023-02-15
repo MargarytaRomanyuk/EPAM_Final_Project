@@ -66,7 +66,6 @@ pipeline {
                         sh "echo $PASSWD | docker login -u $USER --password-stdin"
                         sh 'docker push magharyta/my-repo:${IMAGE_NAME}'
                         sh 'docker rmi magharyta/my-repo:${IMAGE_NAME}'
-                        sleep(time: 5, unit: "SECONDS")
                     }
                 }
             }
@@ -97,7 +96,7 @@ pipeline {
             steps {
                 script {
                    echo "waiting for EC2 server to initialize" 
-                   sleep(time: 120, unit: "SECONDS") 
+                   sleep(time: 100, unit: "SECONDS") 
 
                    echo 'deploying docker image to EC2...'
                    echo "${EC2_PUBLIC_IP}"
@@ -143,7 +142,7 @@ pipeline {
             steps {
                 script {
                     dir('terraform') {
-                        sh "terraform init"
+                        sh "terraform init -no-color"
                         sh "terraform destroy --auto-approve -no-color"
                     }
                 }
@@ -162,8 +161,7 @@ pipeline {
                         sh "git remote set-url origin https://${PASSWD}@github.com/MargarytaRomanyuk/EPAM_Final_Project.git"
                         sh 'git add .'
                         sh 'git commit -m "CI: version bump" '
-                        sh 'git push origin HEAD:dev'
-                        sh 'git config --list'
+                        sh 'git push origin HEAD:dev'      
                     }                    
                 }
             }
