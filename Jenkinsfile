@@ -66,6 +66,7 @@ pipeline {
                         sh "echo $PASSWD | docker login -u $USER --password-stdin"
                         sh 'docker push magharyta/my-repo:${IMAGE_NAME}'
                         sh 'docker rmi magharyta/my-repo:${IMAGE_NAME}'
+                        sleep(time: 5, unit: "SECONDS")
                     }
                 }
             }
@@ -79,7 +80,7 @@ pipeline {
             steps {
                 script {
                     dir('terraform') {
-                        sh "terraform init"
+                        sh "terraform init -no-color"
                         sh "terraform apply --auto-approve -no-color"
                         EC2_PUBLIC_IP = sh(
                             script: "terraform output ec2_public_ip",
@@ -96,7 +97,7 @@ pipeline {
             steps {
                 script {
                    echo "waiting for EC2 server to initialize" 
-                   sleep(time: 100, unit: "SECONDS") 
+                   sleep(time: 120, unit: "SECONDS") 
 
                    echo 'deploying docker image to EC2...'
                    echo "${EC2_PUBLIC_IP}"
