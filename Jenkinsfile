@@ -1,5 +1,5 @@
 pipeline {
-    agent any
+    agent {node {label 'ubuntu_22'} }
     tools {
         maven 'maven-3.8'
     }
