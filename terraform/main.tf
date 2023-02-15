@@ -2,8 +2,8 @@ provider "aws" {
    region = var.region
 }
 
-resource "aws_security_group" "webserver-sg" {
-    name = "webserver-sg"
+resource "aws_security_group" "webservwr-sg" {
+    name = "webservwr-sg"
 
     ingress {
         from_port = 22
@@ -42,10 +42,10 @@ resource "aws_instance" "app-server" {
   ami           = data.aws_ami.latest_amazon_linux.id
   instance_type = var.instance_type
 
-  vpc_security_group_ids = [aws_security_group.webserver-sg.id]
+  vpc_security_group_ids = [aws_security_group.webservwr-sg.id]
   associate_public_ip_address = true
   key_name = "amazon-linux"
-  user_data = file("entry-script.sh")
+  // user_data = file("entry-script.sh")
 
   tags = {
     Name    = "${var.env_prefix}-WebServer"
