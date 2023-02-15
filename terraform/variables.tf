@@ -16,4 +16,3 @@ variable instance_type {
 variable region {
     default = "eu-central-1"
 }
-
