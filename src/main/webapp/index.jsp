@@ -2,7 +2,7 @@
   <head>
     <title>TEST_app</title>
   </head>
-<body bgcolor=pink>
-<h2>Hello, from my app page!</h2>
+<body bgcolor=Yellow>
+<h1>Hello, from my app page!</h1>
 </body>
 </html>

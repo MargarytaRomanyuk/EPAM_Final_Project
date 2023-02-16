@@ -3,9 +3,6 @@ pipeline {
     tools {
         maven 'maven-3.8'
     }
-    //parameters{
-      //  booleanParam(name: 'destroyEnv', defaultValue: false, description: 'Destroy test environment by terraform')
-    //}
     stages {
         stage("incremental version") {
             when {
@@ -112,11 +109,6 @@ pipeline {
             }
         } 
         stage("approve/disallow to destroy env") {
-            //when {
-              //  expression {
-                //    params.destroyEnv == true
-                //}
-           // }
             steps {
                 script {
                     def destroyOptions = 'no\nyes'
@@ -161,7 +153,8 @@ pipeline {
                         sh "git remote set-url origin https://${PASSWD}@github.com/MargarytaRomanyuk/EPAM_Final_Project.git"
                         sh 'git add .'
                         sh 'git commit -m "CI: version bump" '
-                        sh 'git push origin HEAD:dev'      
+                        sh 'git push origin HEAD:dev'
+                        sh 'git config --list'    
                     }                    
                 }
             }
