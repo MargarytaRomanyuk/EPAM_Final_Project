@@ -150,6 +150,9 @@ pipeline {
                 script {                    
                     withCredentials([usernamePassword(credentialsId: 'git-token', passwordVariable: 'PASSWD', usernameVariable: 'USER')])
                     {
+                        sh 'git config --global user.email "ubuntu@nod.com"'
+                        sh 'git config --global user.name "ubuntu_nod"'
+
                         sh "git remote set-url origin https://${PASSWD}@github.com/MargarytaRomanyuk/EPAM_Final_Project.git" // ignore webhooks jenkins@fp.com
                         sh 'git add .'
                         sh 'git commit -m "CI: version bump" '
