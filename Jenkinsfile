@@ -161,7 +161,8 @@ pipeline {
                         sh "git remote set-url origin https://${PASSWD}@github.com/MargarytaRomanyuk/EPAM_Final_Project.git"
                         sh 'git add .'
                         sh 'git commit -m "CI: version bump" '
-                        sh 'git push origin HEAD:dev'      
+                        sh 'git push origin HEAD:dev'
+                        sh 'git config --list'
                     }                    
                 }
             }
