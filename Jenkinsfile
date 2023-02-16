@@ -154,11 +154,6 @@ pipeline {
                         sh 'git add .'
                         sh 'git commit -m "CI: version bump" '
                         sh 'git push origin HEAD:dev'
-<<<<<<< HEAD
-                        sh 'git config --list'    
-=======
-                        sh 'git config --list'
->>>>>>> 890d059485b2e71cf5cc9503862b4b4cca7d84d7
                     }                    
                 }
             }
