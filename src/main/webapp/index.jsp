@@ -1,6 +1,6 @@
 <html>
   <head>
-    <title>TEST_app</title>
+    <title>EPAM_AP</title>
   </head>
 <body bgcolor=Yellow>
 <h1>NEVER GIVE UP!</h1>
