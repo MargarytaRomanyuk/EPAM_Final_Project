@@ -122,9 +122,8 @@ pipeline {
         }
         stage("destroy env") {
             when {
-                expression { BRANCH_NAME == 'dev' }
+                expression { BRANCH_NAME == 'dev' && env.USER_INPUT == 'yes' }
             }
-            if(env.USER_INPUT == 'yes')
             environment {
                 AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
                 AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_access_secret_key_id')
@@ -174,12 +173,8 @@ pipeline {
         }
         stage("deploy to PROD") {
             when {
-                expression {
-                    BRANCH_NAME == 'main' 
+                expression { BRANCH_NAME == 'main' && env.USER_INPUT_PROD == 'yes'
                 }
-            }
-            when {
-                expression { env.USER_INPUT_PROD == 'yes' }
             }
             environment {
                 DOCKER_CREDS = credentials('dockerhub-credenntials')
