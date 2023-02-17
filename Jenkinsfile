@@ -5,11 +5,6 @@ pipeline {
     }
     stages {
         stage("incremental version") {
-            when {
-                expression {
-                    BRANCH_NAME == 'dev'
-                }
-            }   
             steps {
                 script { 
                     echo 'Parsing and incrementing app version...'
@@ -19,6 +14,7 @@ pipeline {
                     def matcher = readFile('pom.xml') =~ '<version>(.+)</version>'
                     def version = matcher[0][1]
                     env.IMAGE_NAME = "$version-$BUILD_NUMBER"
+                    env.IMAGE_NAME_PROD = "$version-latest"                    
                 } 
             }
         }
@@ -35,9 +31,7 @@ pipeline {
         }
         stage("build war") {
             when {
-                expression {
-                    BRANCH_NAME == 'dev'
-                }
+                expression { BRANCH_NAME == 'dev' }
             }
              //agent {
                 //docker { image 'maven:latest' }
@@ -49,11 +43,9 @@ pipeline {
                 }
             }
         }
-        stage("build image") {
+        stage("build and push app image") {
             when {
-                expression {
-                    BRANCH_NAME == 'dev'
-                }
+                expression { BRANCH_NAME == 'dev' }
             }                
             steps {
                 script {
@@ -86,14 +78,17 @@ pipeline {
                 }
             }
         }
-        stage("deploy") {
+        stage("deploy to TEST") {
+            when {
+                expression { BRANCH_NAME == 'dev' }
+            }    
             environment {
                 DOCKER_CREDS = credentials('dockerhub-credenntials')
             }
             steps {
                 script {
-                   echo "waiting for EC2 server to initialize" 
-                   sleep(time: 100, unit: "SECONDS") 
+                   echo "waiting for EC2 server to initialize ..." 
+                   sleep(time: 80, unit: "SECONDS") 
 
                    echo 'deploying docker image to EC2...'
                    echo "${EC2_PUBLIC_IP}"
@@ -109,6 +104,9 @@ pipeline {
             }
         } 
         stage("approve/disallow to destroy env") {
+            when {
+                expression { BRANCH_NAME == 'dev' }
+            }
             steps {
                 script {
                     def destroyOptions = 'no\nyes'
@@ -123,6 +121,9 @@ pipeline {
             }
         }
         stage("destroy env") {
+            when { 
+                 expression { BRANCH_NAME == 'dev' }
+            }
             when {
                 expression { env.USER_INPUT == 'yes' } // destroy approved      
                 }
@@ -140,20 +141,75 @@ pipeline {
                 }
             }
         }
-        stage('commit update version') {
+        stage("build and push latest_app image") {
             when {
-                expression {
-                    BRANCH_NAME == 'dev'
+                expression { BRANCH_NAME == 'dev'}
+            }                
+            steps {
+                script {
+                    echo "Building the docker latest_app image..."
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-credenntials', passwordVariable: 'PASSWD', usernameVariable: 'USER')]) {
+                        sh 'docker build -t magharyta/my-repo:${IMAGE_NAME_PROD} .'
+                       // sh "echo $PASSWD | docker login -u $USER --password-stdin"
+                        sh 'docker push magharyta/my-repo:${IMAGE_NAME_PROD}'
+                        sh 'docker rmi magharyta/my-repo:${IMAGE_NAME_PROD}'
+                    }
                 }
-            }  
+            }
+        }
+        stage("approve/disallow to deploy") {
+            when {
+                expression { BRANCH_NAME == 'main' }
+            }
+            steps {
+                script {
+                    def deployOptions = 'no\nyes'
+                    def userInputProd = input(
+                        id: 'userInputProd', message: 'Are you prepared to deploy to prodaction?', parameters: [ 
+                        [$class: 'ChoiceParameterDefinition', choices: destroyOptions, description: 'Approve/Disallow deploy', name: 'deploy-check']
+                        ]
+                    )
+                    env.USER_INPUT_PROD = "$userInputProd"
+                    echo "you selected: ${userInputProd}"
+                }
+            }
+        }
+        stage("deploy to PROD") {
+            when {
+                expression { BRANCH_NAME == 'main' }
+            }
+            when {
+                expression { env.USER_INPUT_PROD == 'yes' }
+            }
+            environment {
+                DOCKER_CREDS = credentials('dockerhub-credenntials')
+            }
+            steps {
+                script {
+                   echo "waiting for EC2 server to initialize ..." 
+                   sleep(time: 80, unit: "SECONDS") 
+
+                   echo 'deploying docker image to EC2...'
+                   echo "${EC2_PUBLIC_IP}"
+
+                   def shellCmd = "bash ./serv_cmd.sh ${IMAGE_NAME_PROD} ${DOCKER_CREDS_USR} ${DOCKER_CREDS_PSW}"
+                   def ec2Instance = "ec2-user@${EC2_PUBLIC_IP}"
+ 
+                   sshagent(['server-ec2-user']) {
+                       sh "scp -o StrictHostKeyChecking=no serv_cmd.sh ${ec2Instance}:/home/ec2-user"
+                       sh "ssh -o StrictHostKeyChecking=no ${ec2Instance} ${shellCmd}"
+                   }
+                }
+            }
+        } 
+        stage('commit update version') {
             steps {
                 script {                    
                     withCredentials([usernamePassword(credentialsId: 'git-token', passwordVariable: 'PASSWD', usernameVariable: 'USER')])
                     {
-                        sh 'git config --global user.email "ubuntu@nod.com"'
-                        sh 'git config --global user.name "ubuntu_nod"'
-
-                        sh "git remote set-url origin https://${PASSWD}@github.com/MargarytaRomanyuk/EPAM_Final_Project.git" // ignore webhooks jenkins@fp.com
+                       // sh 'git config --global user.email "ubuntu@nod.com"'
+                       // sh 'git config --global user.name "ubuntu_nod"'
+                       // sh "git remote set-url origin https://${PASSWD}@github.com/MargarytaRomanyuk/EPAM_Final_Project.git" // ignore webhooks "ubuntu@nod.com"
                         sh 'git add .'
                         sh 'git commit -m "CI: version bump" '
                         sh 'git push origin HEAD:dev'
