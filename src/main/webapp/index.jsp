@@ -1,8 +1,8 @@
 <html>
   <head>
-    <title>TEST_app</title>
+    <title>EPAM_AP</title>
   </head>
-<body bgcolor=pink>
-<h2>Hello, from my app page!</h2>
+<body bgcolor=blue>
+<h1>NEVER GIVE UP!</h1>
 </body>
 </html>
