@@ -163,7 +163,7 @@ pipeline {
                     def deployOptions = 'no\nyes'
                     def userInputProd = input(
                         id: 'userInputProd', message: 'Are you prepared to deploy to prodaction?', parameters: [ 
-                        [$class: 'ChoiceParameterDefinition', choices: destroyOptions, description: 'Approve/Disallow deploy', name: 'deploy-check']
+                        [$class: 'ChoiceParameterDefinition', choices: deployOptions, description: 'Approve/Disallow deploy', name: 'deploy-check']
                         ]
                     )
                     env.USER_INPUT_PROD = "$userInputProd"
