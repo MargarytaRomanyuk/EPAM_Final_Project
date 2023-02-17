@@ -121,8 +121,10 @@ pipeline {
             }
         }
         stage("destroy env") {
-            when { 
-                 expression { BRANCH_NAME == 'dev' }
+            when {
+                expression { 
+                    BRANCH_NAME == 'dev'
+                }
             }
             when {
                 expression { env.USER_INPUT == 'yes' } // destroy approved      
@@ -176,7 +178,9 @@ pipeline {
         }
         stage("deploy to PROD") {
             when {
-                expression { BRANCH_NAME == 'main' }
+                expression {
+                    BRANCH_NAME == 'main' 
+                }
             }
             when {
                 expression { env.USER_INPUT_PROD == 'yes' }
