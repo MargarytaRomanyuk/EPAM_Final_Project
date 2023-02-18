@@ -1,20 +1,24 @@
 pipeline {
-    agent {node {label 'ubuntu_22'} }
+    agent {node {label 'ubuntu_nod'} }
     tools {
         maven 'maven-3.8'
     }
     
     stages {
-        stage("incremental version") {
-            when {
-                expression { BRANCH_NAME == 'dev' }
-            }
+        stage("parsing and incrementing app version") {
             steps {
                 script { 
                     echo 'Parsing and incrementing app version...'
-                    sh 'mvn build-helper:parse-version versions:set \
-                    -DnewVersion=\\\${parsedVersion.majorVersion}.\\\${parsedVersion.minorVersion}.\\\${parsedVersion.nextIncrementalVersion} \
-                    versions:commit'
+                    if( BRANCH_NAME == 'main') {
+                        sh 'mvn build-helper:parse-version versions:set \
+                        -DnewVersion=\\\${parsedVersion.majorVersion}.\\\${parsedVersion.minorVersion}.\\\${parsedVersion.IncrementalVersion} \
+                        versions:commit'
+                    }
+                    else {
+                        sh 'mvn build-helper:parse-version versions:set \
+                        -DnewVersion=\\\${parsedVersion.majorVersion}.\\\${parsedVersion.minorVersion}.\\\${parsedVersion.nextIncrementalVersion} \
+                        versions:commit'
+                    }
                     def matcher = readFile('pom.xml') =~ '<version>(.+)</version>'
                     def version = matcher[0][1]
                     env.IMAGE_NAME = "$version-$BUILD_NUMBER"
@@ -101,7 +105,8 @@ pipeline {
                    }
                 }
             }
-        } 
+        }
+        
         stage("approve/disallow to destroy env") {
             when {
                 expression { BRANCH_NAME == 'dev' }
@@ -137,9 +142,10 @@ pipeline {
                 }
             }
         }
+        
         stage("build and push latest_app image") {
             when {
-                expression { BRANCH_NAME == 'dev'}
+                expression { BRANCH_NAME == 'dev' && env.USER_INPUT == 'yes'}
             }                
             steps {
                 script {
@@ -170,10 +176,9 @@ pipeline {
                 }
             }
         }
-        stage("deploy to PROD") {
+        stage("deploy to PROD latest version") {
             when {
-                expression { BRANCH_NAME == 'main' && env.USER_INPUT_PROD == 'yes'
-                }
+                expression { BRANCH_NAME == 'main' && env.USER_INPUT_PROD == 'yes' }
             }
             environment {
                 DOCKER_CREDS = credentials('dockerhub-credenntials')
@@ -181,11 +186,9 @@ pipeline {
             steps {
                 script {
                    echo "waiting for EC2 server to initialize ..." 
-                   sleep(time: 80, unit: "SECONDS") 
+                   sleep(time: 60, unit: "SECONDS") 
 
-                   echo 'deploying docker image to EC2...'
-                   echo "${EC2_PUBLIC_IP}"
-
+                   echo "deploying docker image to EC2 ${EC2_PUBLIC_IP}"
                    def shellCmd = "bash ./serv_cmd.sh ${IMAGE_NAME_PROD} ${DOCKER_CREDS_USR} ${DOCKER_CREDS_PSW}"
                    def ec2Instance = "ec2-user@${EC2_PUBLIC_IP}"
  
@@ -198,8 +201,7 @@ pipeline {
         } 
         stage('commit update version') {
             when {
-                expression { BRANCH_NAME == 'main' && env.USER_INPUT_PROD == 'yes'
-                }
+                expression { BRANCH_NAME == 'dev' }
             }
             steps {
                 script {                    
