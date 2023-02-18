@@ -93,7 +93,7 @@ pipeline {
             steps {
                 script {
                    echo "waiting for TEST server to initialize ..." 
-                   sleep(time: 80, unit: "SECONDS") 
+                   sleep(time: 120, unit: "SECONDS") 
 
                    echo "deploying docker image to ${EC2_PUBLIC_IP}..."
                    def shellCmd = "bash ./serv_cmd.sh ${IMAGE_NAME} ${DOCKER_CREDS_USR} ${DOCKER_CREDS_PSW}"
