@@ -1,6 +1,6 @@
 ---
 - name: Wait for ssh connection
-  hosts: ec2
+  hosts: all
   gather_facts: False
   tasks:
     - name: Ensure ssh port open
@@ -15,7 +15,7 @@
         ansible_interpreter_python: /usr/bin/python3.7
 
 - name: Configure webser for deploy
-  hosts: ec2
+  hosts: all
   become: yes
   gather_facts: False
   tasks:
@@ -30,7 +30,7 @@
       state: present
 
 - name: Start Docker
-  hosts: ec2
+  hosts: all
   become: yes
   tasks:
     - name: start Docker deamon
@@ -42,7 +42,7 @@
         name: docker
          
 - name: Add ec2-user to docker group
-  hosts: ec2
+  hosts: all
   become: yes
   tasks:
     - name: Add ec2-user to docker group
@@ -52,7 +52,7 @@
          append: yes
 
 - name: Start docker containers
-  hosts: ec2
+  hosts: all
   tasks:
     - name: Docker login 
       docker_login:
