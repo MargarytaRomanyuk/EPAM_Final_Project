@@ -1,11 +1,27 @@
 ---
-- name: Configure webser
+- name: Wait for ssh connection
+  hosts: ec2
+  gather_facts: False
+  tasks:
+    - name: Ensure ssh port open
+      wait_for:
+        port: 22
+        delay: 10
+        timeout: 60
+        search_regex: OpenSSH
+        host: '{{(ansible_ssh_host|default(ansible_host))|default(inventory_hostname)}}'
+      vars:
+        ansible_connection: local
+        ansible_interpreter_python: /usr/bin/python3.7
+
+- name: Configure webser for deploy
   hosts: ec2
   become: yes
+  gather_facts: False
   tasks:
-  - name: install python3 and Docker
+  - name: Check is python3 installed and install Docker
     vars:
-      ansible_interpreter_python: /usr/bin/python3
+      ansible_interpreter_python: /usr/bin/python3.7
     yum:
       name:
         - python3
@@ -13,7 +29,7 @@
       update_cache: yes
       state: present
 
-- name: start docker
+- name: Start Docker
   hosts: ec2
   become: yes
   tasks:
@@ -21,7 +37,7 @@
       systemd:
          name: docker
          state: started
-    - name: install docker python module
+    - name: Install Docker python module
       pip:
         name: docker
          
@@ -34,7 +50,8 @@
          name: ec2-user
          groups: docker
          append: yes
-- name: start docker containers
+
+- name: Start docker containers
   hosts: ec2
   tasks:
     - name: Docker login 
@@ -42,5 +59,11 @@
         registry_url: https://index.docker.io/v1/
         username: magharyta
         password: "{{docker_password}}"
-
-
+    - name: Run java-maven app container
+      docker_container:
+        name: java-maven-app
+        image: "magharyta/my-repo:{{docker_image}}"
+        state: started
+        restart: true
+        ports:
+          - "8080:8080"
