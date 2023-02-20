@@ -93,9 +93,9 @@ pipeline {
             steps {
                 script {
                     echo "waiting for TEST server to initialize ..." 
-                    sleep(time: 100, unit: "SECONDS") 
+                    //sleep(time: 100, unit: "SECONDS") 
                     echo "deploying docker image to ${EC2_PUBLIC_IP}..."
-                    dir('ansible'){
+                    dir('ansible') {
                         withCredentials([usernamePassword(credentialsId: 'dockerhub-credenntials', passwordVariable: 'PASSWD', usernameVariable: 'USER')]) {
                         sh "echo $PASSWD | ansible-playbook --inventory ${EC2_PUBLIC_IP}, --private-key /home/ubuntu/.ssh/amazon-linux.pem --user ec2-user playbook.yaml -e docker_password=$PASSWD -e docker_image=$IMAGE_NAME"
                         }
