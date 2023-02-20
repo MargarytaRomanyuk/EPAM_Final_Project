@@ -1,10 +1,18 @@
+//terraform {
+  //  required_version = ">= 1.3"
+   // backend "s3" {
+     //   bucket = "java-maven-bucket"
+       // key = "java-maven/terraform.tfstate"
+      //  region = var.region
+  //  }
+//}
+
 provider "aws" {
    region = var.region
 }
 
 resource "aws_security_group" "web_server_sg" {
-    name = "web_server_sg"
-
+    
     ingress {
         from_port = 22
         to_port = 22
@@ -37,7 +45,7 @@ data "aws_ami" "latest_amazon_linux" {
     values = ["amzn2-ami-kernel-*-hvm-*-x86_64-gp2"]
   }
 }
-// amzn2-ami-kernel-5.10-hvm-2.0.20230119.1-x86_64-gp2
+
 resource "aws_instance" "app-server" {
   ami           = data.aws_ami.latest_amazon_linux.id
   instance_type = var.instance_type
@@ -45,7 +53,7 @@ resource "aws_instance" "app-server" {
   vpc_security_group_ids = [aws_security_group.web_server_sg.id]
   associate_public_ip_address = true
   key_name = "amazon-linux"
-  user_data = file("entry-script.sh")
+  //user_data = file("entry-script.sh")
 
   tags = {
     Name    = "${var.env_prefix}-WebServer"
@@ -53,9 +61,9 @@ resource "aws_instance" "app-server" {
     Project = "EPAM_project"}
 }
 
-output "latest_amazon_linux_ami_id" {
-  value = data.aws_ami.latest_amazon_linux.id
-}
+//output "latest_amazon_linux_ami_id" {
+  //value = data.aws_ami.latest_amazon_linux.id
+//}
 output "ec2_public_ip" {
     value = aws_instance.app-server.public_ip
 }

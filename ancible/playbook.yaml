@@ -1,0 +1,46 @@
+---
+- name: Configure webser
+  hosts: ec2
+  become: yes
+  tasks:
+  - name: install python3 and Docker
+    vars:
+      ansible_interpreter_python: /usr/bin/python3
+    yum:
+      name:
+        - python3
+        - docker
+      update_cache: yes
+      state: present
+
+- name: start docker
+  hosts: ec2
+  become: yes
+  tasks:
+    - name: start Docker deamon
+      systemd:
+         name: docker
+         state: started
+    - name: install docker python module
+      pip:
+        name: docker
+         
+- name: Add ec2-user to docker group
+  hosts: ec2
+  become: yes
+  tasks:
+    - name: Add ec2-user to docker group
+      user:
+         name: ec2-user
+         groups: docker
+         append: yes
+- name: start docker containers
+  hosts: ec2
+  tasks:
+    - name: Docker login 
+      docker_login:
+        registry_url: https://index.docker.io/v1/
+        username: magharyta
+        password: "{{docker_password}}"
+
+
