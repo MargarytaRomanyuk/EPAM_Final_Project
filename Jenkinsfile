@@ -84,6 +84,7 @@ pipeline {
             }
         }
         stage("deploy to TEST via ansible") {
+            agent any
             when {
                 expression { BRANCH_NAME == 'dev' }
             }    
