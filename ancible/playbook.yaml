@@ -12,7 +12,7 @@
         host: '{{(ansible_ssh_host|default(ansible_host))|default(inventory_hostname)}}'
       vars:
         ansible_connection: local
-        ansible_interpreter_python: /usr/bin/python3.7
+        ansible_python_interpreter: /usr/bin/python
 
 - name: Configure webser for deploy
   hosts: all
@@ -21,7 +21,7 @@
   tasks:
   - name: Check is python3 installed and install Docker
     vars:
-      ansible_interpreter_python: /usr/bin/python3.7
+      ansible_python_interpreter: /usr/bin/python
     yum:
       name:
         - python3
