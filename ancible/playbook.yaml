@@ -12,7 +12,6 @@
         host: '{{(ansible_ssh_host|default(ansible_host))|default(inventory_hostname)}}'
       vars:
         ansible_connection: local
-        ansible_python_interpreter: /usr/bin/python
 
 - name: Configure webser for deploy
   hosts: all
