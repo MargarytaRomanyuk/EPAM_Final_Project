@@ -27,6 +27,9 @@
         - docker
       update_cache: yes
       state: present
+  - name: Wait for Docker to start
+    pause:
+      seconds: 20  
 
 - name: Start Docker
   hosts: all
@@ -48,11 +51,7 @@
       user:
          name: ec2-user
          groups: docker
-         append: yes
-
-- name: Wait for Docker to start
-  pause:
-    seconds: 20        
+         append: yes    
 
 - name: Start docker containers
   hosts: all
