@@ -4,7 +4,7 @@
 	<groupId>com.denofprogramming</groupId>
 	<artifactId>sampleWebApp</artifactId>
 	<packaging>war</packaging>
-	<version>0.0.12</version>
+	<version>0.0.13</version>
 	<name>Number Generator WebApp</name>
 	<url>http://denofprogramming.com</url>
 
