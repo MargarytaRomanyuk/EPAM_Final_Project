@@ -64,7 +64,7 @@ pipeline {
                 }
             }
         }
-        stage("provision web-server for deploy test") {
+        stage("provision web-server for deploy") {
             environment {
                 AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
                 AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_access_secret_key_id')
@@ -93,7 +93,7 @@ pipeline {
             steps {
                 script {
                     echo "waiting for TEST server to initialize ..." 
-                    sleep(time: 60, unit: "SECONDS") 
+                    sleep(time: 30, unit: "SECONDS") 
                     echo "deploying docker image to ${EC2_PUBLIC_IP}..."
                     dir('ancible') {
                         withCredentials([usernamePassword(credentialsId: 'dockerhub-credenntials', passwordVariable: 'PASSWD', usernameVariable: 'USER')]) {
