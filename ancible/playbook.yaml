@@ -50,9 +50,9 @@
          groups: docker
          append: yes
 
- - name: Wait for Docker to start
-   pause:
-    seconds: 10        
+- name: Wait for Docker to start
+  pause:
+    seconds: 20        
 
 - name: Start docker containers
   hosts: all
