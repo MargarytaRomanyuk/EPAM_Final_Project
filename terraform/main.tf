@@ -1,11 +1,10 @@
-//terraform {
-  //  required_version = ">= 1.3"
-   // backend "s3" {
-     //   bucket = "java-maven-bucket"
-       // key = "java-maven/terraform.tfstate"
-      //  region = var.region
-  //  }
-//}
+terraform {
+  backend "s3" {
+    bucket         = "java-maven-app"
+    key            = "terraform.tfstate"
+    region         = "us-east-1"
+  }
+}
 
 provider "aws" {
    region = var.region
