@@ -27,9 +27,6 @@
         - docker
       update_cache: yes
       state: present
-  - name: Wait for Docker to start
-    pause:
-      seconds: 20  
 
 - name: Start Docker
   hosts: all
@@ -42,6 +39,9 @@
     - name: Install Docker python module
       pip:
         name: docker
+    - name: Wait for Docker to start
+      pause:
+        seconds: 20  
          
 - name: Add ec2-user to docker group
   hosts: all
