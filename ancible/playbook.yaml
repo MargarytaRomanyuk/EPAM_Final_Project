@@ -49,9 +49,8 @@
          name: ec2-user
          groups: docker
          append: yes    
-    - name: Wait for Docker to start
-      pause:
-        seconds: 20
+    - name: Reconnect to the server
+      meta: reset_connection
         
 - name: Start docker containers
   hosts: all
