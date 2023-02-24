@@ -10,31 +10,6 @@ provider "aws" {
    region = var.region
 }
 
-resource "aws_security_group" "web_server_sg" {
-    
-    ingress {
-        from_port = 22
-        to_port = 22
-        protocol = "tcp"
-        cidr_blocks = [var.my_ip, var.jenkins_ip]
-    }
-    ingress {
-        from_port = 8080
-        to_port = 8080
-        protocol = "tcp"
-        cidr_blocks = ["0.0.0.0/0"]
-    }
-
-    egress {
-        from_port = 0
-        to_port = 0
-        protocol = "-1"
-        cidr_blocks = ["0.0.0.0/0"]
-    }
-    tags = {
-        Name = "${var.env_prefix}-default-sg"
-    }
-}
 
 data "aws_ami" "latest_amazon_linux" {
   owners      = ["137112412989"]
@@ -45,11 +20,18 @@ data "aws_ami" "latest_amazon_linux" {
   }
 }
 
+module "security_group" {
+  source = "./modules/security_group"
+  my_ip = var.my_ip
+  jenkins_ip = var.jenkins_ip
+  env_prefix = var.env_prefix
+}
+
 resource "aws_instance" "app-server" {
   ami           = data.aws_ami.latest_amazon_linux.id
   instance_type = var.instance_type
 
-  vpc_security_group_ids = [aws_security_group.web_server_sg.id]
+  vpc_security_group_ids = [module.security_group.id]
   associate_public_ip_address = true
   key_name = "amazon-linux"
   //user_data = file("entry-script.sh")
@@ -57,8 +39,10 @@ resource "aws_instance" "app-server" {
   tags = {
     Name    = "${var.env_prefix}-WebServer"
     Owner   = "Marharyta Romaniuk"
-    Project = "EPAM_project"}
+    Project = "EPAM_project"
+  }
 }
+
 
 //output "latest_amazon_linux_ami_id" {
   //value = data.aws_ami.latest_amazon_linux.id
@@ -66,3 +50,5 @@ resource "aws_instance" "app-server" {
 output "ec2_public_ip" {
     value = aws_instance.app-server.public_ip
 }
+
+
