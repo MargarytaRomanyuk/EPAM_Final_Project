@@ -28,24 +28,24 @@
       systemd:
         name: docker
         state: started
-
-    - name: Wait for Docker to start
-      wait_for:
-        host: localhost
-        port: 2375
-        delay: 20
-        timeout: 150
-
-    - name: Install Docker Python module
-      pip:
-        name: docker
-
     - name: Add ec2-user to Docker group
       user:
         name: ec2-user
         groups: docker
         append: yes
 
+    - name: Install Docker Python module
+      pip:
+        name: docker
+    - name: Wait for Docker to start
+      wait_for:
+         host: '{{ (ansible_ssh_host | default(ansible_host)) | default(inventory_hostname) }}'
+         port: 2375
+         delay: 20
+         timeout: 120
+         state: started
+      vars:
+         ansible_connection: local
     - name: Docker login
       docker_login:
         registry_url: https://index.docker.io/v1/
