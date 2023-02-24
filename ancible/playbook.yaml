@@ -46,7 +46,7 @@
          delay: 10
          timeout: 120
          state: started
-       vars:
+      vars:
          ansible_connection: local
    # - name: Wait for Docker to start
     #  pause:
