@@ -33,7 +33,7 @@
       wait_for:
         host: localhost
         port: 2375
-        delay: 10
+        delay: 30
         timeout: 120
 
     - name: Install Docker Python module
