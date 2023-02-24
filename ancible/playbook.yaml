@@ -41,7 +41,7 @@
         name: docker
     - name: Wait for Docker to start
       pause:
-        seconds: 20  
+        seconds: 60  
          
 - name: Add ec2-user to docker group
   hosts: all
