@@ -39,9 +39,18 @@
     - name: Install Docker python module
       pip:
         name: docker
-    - name: Wait for Docker to start
-      pause:
-        seconds: 60  
+   # - name: Wait for Docker to start
+    #  pause:
+     #   seconds: 60  
+- name: Wait for Docker to start
+  wait_for:
+    host: '{{ (ansible_ssh_host | default(ansible_host)) | default(inventory_hostname) }}'
+    port: 2375
+    delay: 10
+    timeout: 120
+    state: started
+  vars:
+    ansible_connection: local
          
 - name: Add ec2-user to docker group
   hosts: all
