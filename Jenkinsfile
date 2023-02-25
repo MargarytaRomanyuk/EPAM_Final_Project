@@ -15,8 +15,8 @@ pipeline {
             steps {
                 script {
                     sh "aws ec2 start-instances --instance-ids ${INSTANCE_ID}"
-                    echo 'sleep for 30 seconds to allow the node to fully initialize'
-                    sh 'sleep 30'          
+                    echo 'sleep for 60 seconds to allow the node to fully initialize'
+                    sh 'sleep 60'          
                 }              
             }
         }
@@ -220,8 +220,6 @@ pipeline {
                 expression { BRANCH_NAME == 'dev' }
             }
             steps {
-                unstash 'data'
-                sh 'make process-data'
                 script {                    
                     withCredentials([usernamePassword(credentialsId: 'git-token', passwordVariable: 'PASSWD', usernameVariable: 'USER')])
                     {
