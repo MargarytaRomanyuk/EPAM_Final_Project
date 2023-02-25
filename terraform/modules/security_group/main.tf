@@ -20,6 +20,6 @@ resource "aws_security_group" "web_server_sg" {
         cidr_blocks = ["0.0.0.0/0"]
     }
     tags = {
-        Name = "${var.env_prefix}-default-sg"
+        Name = "${var.env_prefix}-sg"
     }
 }
