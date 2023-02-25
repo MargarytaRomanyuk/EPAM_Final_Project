@@ -1,11 +1,28 @@
 pipeline {
-    agent {node {label 'ubuntu_nod'} }
+    agent any
     tools {
         maven 'maven-3.8'
     }
-    
+    environment {
+        AWS_ACCESS_KEY_ID     = credentials('jenkins_aws_access_key_id')
+        AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_access_secret_key_id')
+        AWS_DEFAULT_REGION    = 'eu-central-1'
+        INSTANCE_ID           = 'i-0a8997dc938b3a332'
+    }
+
     stages {
+        stage('Start ubuntu-nod EC2 instance') {
+            steps {
+                script {
+                    sh "aws ec2 start-instances --instance-ids ${INSTANCE_ID}"
+                    echo 'sleep for 60 seconds to allow the node to fully initialize'
+                    sh 'sleep 60'          
+                }              
+            }
+        }
+
         stage("parsing and incrementing app version") {
+            agent {node {label 'ubuntu_nod'} }
             steps {
                 script { 
                     echo 'Parsing and incrementing app version...'
@@ -27,6 +44,7 @@ pipeline {
             }
         }
         stage ("test app") {
+            agent {node {label 'ubuntu_nod'} }
             steps {
                 script {
                     echo "Testing the application..."
@@ -35,6 +53,7 @@ pipeline {
             }
         }
         stage("build war") {
+            agent {node {label 'ubuntu_nod'} }
             when {
                 expression { BRANCH_NAME == 'dev' }
             }
@@ -49,6 +68,7 @@ pipeline {
             }
         }
         stage("build and push app image") {
+            agent {node {label 'ubuntu_nod'} }
             when {
                 expression { BRANCH_NAME == 'dev' }
             }                
@@ -65,6 +85,7 @@ pipeline {
             }
         }
         stage("provision web-server for deploy") {
+            agent {node {label 'ubuntu_nod'} }
             environment {
                 AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
                 AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_access_secret_key_id')
@@ -84,6 +105,7 @@ pipeline {
             }
         }
         stage("deploy to TEST via ansible") {
+            agent {node {label 'ubuntu_nod'} }
             when {
                 expression { BRANCH_NAME == 'dev' }
             }    
@@ -105,6 +127,7 @@ pipeline {
         }
         
         stage("approve/disallow to destroy env") {
+            agent {node {label 'ubuntu_nod'} }
             when {
                 expression { BRANCH_NAME == 'dev' }
             }
@@ -122,12 +145,13 @@ pipeline {
             }
         }
         stage("destroy env") {
+            agent {node {label 'ubuntu_nod'} }
             when {
                 expression { BRANCH_NAME == 'dev' && env.USER_INPUT == 'yes' }
             }
             environment {
-                AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
-                AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_access_secret_key_id')
+                //AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
+                //AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_access_secret_key_id')
                 TF_VAR_env_prefix = "${BRANCH_NAME}"
             }
             steps {
@@ -141,6 +165,7 @@ pipeline {
         }
         
         stage("build and push latest_app image") {
+            agent {node {label 'ubuntu_nod'} }
             when {
                 expression { BRANCH_NAME == 'dev' && env.USER_INPUT == 'yes'}
             }                
@@ -157,6 +182,7 @@ pipeline {
             }
         }
         stage("approve/disallow to deploy") {
+            agent {node {label 'ubuntu_nod'} }
             when {
                 expression { BRANCH_NAME == 'main' }
             }
@@ -174,6 +200,7 @@ pipeline {
             }
         }
         stage("deploy latest version to PROD via ansible") {
+            agent {node {label 'ubuntu_nod'} }
             when {
                 expression { BRANCH_NAME == 'main' && env.USER_INPUT_PROD == 'yes' }
             }   
@@ -194,6 +221,7 @@ pipeline {
             }
         }
         stage('commit update version') {
+            agent {node {label 'ubuntu_nod'} }
             when {
                 expression { BRANCH_NAME == 'dev' }
             }
