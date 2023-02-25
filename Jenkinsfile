@@ -22,7 +22,6 @@ pipeline {
         }
 
         stage("parsing and incrementing app version") {
-            agent {node {label 'ubuntu_nod'} }
             steps {
                 script { 
                     echo 'Parsing and incrementing app version...'
@@ -40,9 +39,7 @@ pipeline {
                     def version = matcher[0][1]
                     env.IMAGE_NAME = "$version-$BUILD_NUMBER"
                     env.IMAGE_NAME_PROD = "$version-latest"                    
-                }
-                sh 'make build'
-                stash name: 'data', includes: 'data/**'                
+                }          
             }
         }
         stage ("test app") {
@@ -89,8 +86,6 @@ pipeline {
         stage("provision web-server for deploy") {
             agent {node {label 'ubuntu_nod'} }
             environment {
-                AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
-                AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_access_secret_key_id')
                 TF_VAR_env_prefix = "${BRANCH_NAME}"
             }
             steps {
@@ -152,8 +147,6 @@ pipeline {
                 expression { BRANCH_NAME == 'dev' && env.USER_INPUT == 'yes' }
             }
             environment {
-                //AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
-                //AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_access_secret_key_id')
                 TF_VAR_env_prefix = "${BRANCH_NAME}"
             }
             steps {
@@ -223,7 +216,6 @@ pipeline {
             }
         }
         stage('commit update version') {
-            agent {node {label 'ubuntu_nod'} }
             when {
                 expression { BRANCH_NAME == 'dev' }
             }
