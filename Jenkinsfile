@@ -15,8 +15,8 @@ pipeline {
             steps {
                 script {
                     sh "aws ec2 start-instances --instance-ids ${INSTANCE_ID}"
-                    echo 'sleep for 60 seconds to allow the node to fully initialize'
-                    sh 'sleep 60'          
+                    echo 'sleep for 30 seconds to allow the node to fully initialize'
+                    sh 'sleep 30'          
                 }              
             }
         }
@@ -40,7 +40,9 @@ pipeline {
                     def version = matcher[0][1]
                     env.IMAGE_NAME = "$version-$BUILD_NUMBER"
                     env.IMAGE_NAME_PROD = "$version-latest"                    
-                } 
+                }
+                sh 'make build'
+                stash name: 'data', includes: 'data/**'                
             }
         }
         stage ("test app") {
@@ -226,6 +228,8 @@ pipeline {
                 expression { BRANCH_NAME == 'dev' }
             }
             steps {
+                unstash 'data'
+                sh 'make process-data'
                 script {                    
                     withCredentials([usernamePassword(credentialsId: 'git-token', passwordVariable: 'PASSWD', usernameVariable: 'USER')])
                     {
