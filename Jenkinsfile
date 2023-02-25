@@ -11,7 +11,7 @@ pipeline {
     }
 
     stages {
-        stage('Start ubuntu-nod EC2 instance') {
+        stage('Start jenkins-nod') {
             steps {
                 script {
                     sh "aws ec2 start-instances --instance-ids ${INSTANCE_ID}"
@@ -215,6 +215,10 @@ pipeline {
                 }
             }
         }
+        stage('Stop jenkins-nod') {
+            steps {
+                sh "aws ec2 stop-instances --instance-ids ${INSTANCE_ID}"
+            }
         stage('commit update version') {
             when {
                 expression { BRANCH_NAME == 'dev' }
