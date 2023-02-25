@@ -93,7 +93,7 @@ pipeline {
             steps {
                 script {
                     echo "waiting for TEST server to initialize ..." 
-                    sleep(time: 30, unit: "SECONDS") 
+                    sleep(time: 10, unit: "SECONDS") 
                     echo "deploying docker image to ${EC2_PUBLIC_IP}..."
                     dir('ancible') {
                         withCredentials([usernamePassword(credentialsId: 'dockerhub-credenntials', passwordVariable: 'PASSWD', usernameVariable: 'USER')]) {
@@ -173,29 +173,26 @@ pipeline {
                 }
             }
         }
-        stage("deploy to PROD latest version") {
+        stage("deploy latest version to PROD via ansible") {
             when {
                 expression { BRANCH_NAME == 'main' && env.USER_INPUT_PROD == 'yes' }
-            }
+            }   
             environment {
                 DOCKER_CREDS = credentials('dockerhub-credenntials')
             }
             steps {
                 script {
-                   echo "waiting for EC2 server to initialize ..." 
-                   sleep(time: 60, unit: "SECONDS") 
-
-                   echo "deploying docker image to EC2 ${EC2_PUBLIC_IP}"
-                   def shellCmd = "bash ./serv_cmd.sh ${IMAGE_NAME_PROD} ${DOCKER_CREDS_USR} ${DOCKER_CREDS_PSW}"
-                   def ec2Instance = "ec2-user@${EC2_PUBLIC_IP}"
- 
-                   sshagent(['server-ec2-user']) {
-                       sh "scp -o StrictHostKeyChecking=no serv_cmd.sh ${ec2Instance}:/home/ec2-user"
-                       sh "ssh -o StrictHostKeyChecking=no ${ec2Instance} ${shellCmd}"
-                   }
+                    echo "waiting for PROD server to initialize ..." 
+                    sleep(time: 30, unit: "SECONDS") 
+                    echo "deploying docker image to ${EC2_PUBLIC_IP}..."
+                    dir('ancible') {
+                        withCredentials([usernamePassword(credentialsId: 'dockerhub-credenntials', passwordVariable: 'PASSWD', usernameVariable: 'USER')]) {
+                        sh "echo $PASSWD | ansible-playbook --inventory ${EC2_PUBLIC_IP}, --private-key ~/.ssh/amazon-linux.pem --user ec2-user playbook.yaml -e docker_password=$PASSWD -e docker_image=$IMAGE_NAME_PROD"
+                        }
+                    }
                 }
             }
-        } 
+        }
         stage('commit update version') {
             when {
                 expression { BRANCH_NAME == 'dev' }
