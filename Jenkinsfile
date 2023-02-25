@@ -219,6 +219,7 @@ pipeline {
             steps {
                 sh "aws ec2 stop-instances --instance-ids ${INSTANCE_ID}"
             }
+        }
         stage('commit update version') {
             when {
                 expression { BRANCH_NAME == 'dev' }
