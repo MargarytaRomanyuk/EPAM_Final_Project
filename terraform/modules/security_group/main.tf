@@ -23,6 +23,3 @@ resource "aws_security_group" "web_server_sg" {
         Name = "${var.env_prefix}-default-sg"
     }
 }
-output "id" {
-  value = aws_security_group.web_server_sg.id
-}
