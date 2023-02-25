@@ -93,7 +93,7 @@ pipeline {
             steps {
                 script {
                     echo "waiting for TEST server to initialize ..." 
-                    sleep(time: 10, unit: "SECONDS") 
+                    sleep(time: 30, unit: "SECONDS") 
                     echo "deploying docker image to ${EC2_PUBLIC_IP}..."
                     dir('ancible') {
                         withCredentials([usernamePassword(credentialsId: 'dockerhub-credenntials', passwordVariable: 'PASSWD', usernameVariable: 'USER')]) {

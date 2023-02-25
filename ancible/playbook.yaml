@@ -48,8 +48,10 @@
       user:
          name: ec2-user
          groups: docker
-         append: yes
-
+         append: yes    
+    - name: Reconnect to the server
+      meta: reset_connection
+        
 - name: Start docker containers
   hosts: all
   tasks:
