@@ -8,6 +8,7 @@ pipeline {
         AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_access_secret_key_id')
         AWS_DEFAULT_REGION    = 'eu-central-1'
         INSTANCE_ID           = 'i-0a8997dc938b3a332'
+        DOCKER_CREDS          = credentials('dockerhub-credenntials')
     }
 
     stages {
@@ -106,9 +107,6 @@ pipeline {
             when {
                 expression { BRANCH_NAME == 'dev' }
             }    
-            environment {
-                DOCKER_CREDS = credentials('dockerhub-credenntials')
-            }
             steps {
                 script {
                     echo "waiting for TEST server to initialize ..." 
@@ -199,9 +197,6 @@ pipeline {
             when {
                 expression { BRANCH_NAME == 'main' && env.USER_INPUT_PROD == 'yes' }
             }   
-            environment {
-                DOCKER_CREDS = credentials('dockerhub-credenntials')
-            }
             steps {
                 script {
                     echo "waiting for PROD server to initialize ..." 
@@ -228,8 +223,8 @@ pipeline {
                 script {                    
                     withCredentials([usernamePassword(credentialsId: 'git-token', passwordVariable: 'PASSWD', usernameVariable: 'USER')])
                     {
-                        sh 'git config --global user.email "ubuntu@nod.com"'
-                        sh 'git config --global user.name "ubuntu_nod"'
+                        //sh 'git config --global user.email "ubuntu@nod.com"'
+                        //sh 'git config --global user.name "ubuntu_nod"'
                         sh "git remote set-url origin https://${PASSWD}@github.com/MargarytaRomanyuk/EPAM_Final_Project.git" // ignore webhooks "ubuntu@nod.com"
                         sh 'git add .'
                         sh 'git commit -m "CI: version bump" '
